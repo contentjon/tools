@@ -1,0 +1,9 @@
+The repository contains a hierarchical build clojure libraries. The following libraries are currently maintained here:
+
+= gen
+
+A parser generator library
+
+= logic
+
+A predicate generator library
