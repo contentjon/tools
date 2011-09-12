@@ -1,7 +1,7 @@
 (ns com.contentjon.logic.collections
   "Clojure collection related predicate generators"
   (:refer-clojure :exclude (every? map-of?))
-  (:use [com.contentjon.logic.predicates :only (is? or?)]))
+  (:use [com.contentjon.logic.core :only (and? is? or?)]))
 
 (defn every?
   "Take a predicate and returns a predicate that returns true
@@ -43,3 +43,5 @@
     (apply and?
            (is? keys ks)
            (map (partial apply property?) spec))))
+
+
