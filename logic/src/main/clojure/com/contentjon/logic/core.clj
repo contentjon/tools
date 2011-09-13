@@ -41,10 +41,12 @@
 
 (defn interval?
   "Takes a upper and lower bound for an interval and returns
-   a predicate that check that an input value is within those boundaries.
+   a predicate that checks that an input value is within those boundaries.
    The comparison is performed with the <= operator unless :type :open
    is passed in which case < is used"
   [min max & { :keys [type] :or { type :closed }}]
   (let [pred  (fn [op x] (op min x max))
         types { :open < :closed <= }]
     (partial pred (get types type))))
+
+(def not? complement)

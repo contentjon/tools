@@ -38,10 +38,5 @@
    - For each key in the input map the corresponding predicate from
      the parameter spec applies"
   [& props]
-  (let [spec (partition 2 props)
-        ks   (map first spec)]
-    (apply and?
-           (is? keys ks)
-           (map (partial apply property?) spec))))
-
-
+  (let [spec (partition 2 props)]
+    (apply and? (map (partial apply property?) spec))))
