@@ -1,6 +1,7 @@
 (ns com.contentjon.gen.lang.text
   "Generic text generation utilities functions"
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str])
+  (:use [com.contentjon.fn.algo :only [applier]]))
 
 (def ^:dynamic *endl*   "\n")
 (def ^:dynamic *indent* "  ")
@@ -11,9 +12,6 @@
 (defn embracer
   ([open]       (embracer open open))
   ([open close] #(str open % close)))
-
-(defn applier [f & bound]
-  (apply partial apply f bound))
 
 (defn joiner [separator]
   (partial str/join separator))

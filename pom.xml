@@ -12,7 +12,7 @@
   <modules>
     <module>collections</module>
     <module>gen</module>
-    <module>logic</module>
+    <module>fn</module>
   </modules>
 
   <dependencies>

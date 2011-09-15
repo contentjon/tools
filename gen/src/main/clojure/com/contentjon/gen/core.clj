@@ -20,31 +20,43 @@
 
 ;;; helpers for defining or running parsers
 
-(defmacro parser
-  "Creates a new mondaic parser with the passed in bindings and body"
-  [bindings body]
-  `(domonad parser-m
-            ~@(if bindings [bindings])
-            ~body))
+(defn- skip-transform-bindings [skip-parser-sym bindings]
+  (let [skip-binding `[_# (many* ~skip-parser-sym)]
+        bindings (->> bindings
+                      (partition 2)
+                      (interpose skip-binding)
+                      (apply concat))]
+    (concat skip-binding bindings skip-binding)))
 
-(defmacro defparser
-  "Defines a new monadic parser with the passed in name, bindings and body"
-  ([name bindings body]
-     `(def ~name (parser ~bindings
-                          ~body)))
-  ([name skip-keyword skip bindings body]
+(defmacro parser
+  "Creates a new monadic parser with the passed in bindings and body.
+   It optionally accepts :skip skip-parser as first arguments, in which
+   case skip-parser is run before and after each subparsers. This is useful
+   for dealing with whitespace."
+  ([bindings body]
+     `(domonad parser-m
+               ~bindings
+               ~body))
+  ([skip-keyword skip bindings body]
      (when-not (= skip-keyword :skip)
        (throw (IllegalArgumentException. "use :skip")))
      (let [skip-parser-sym (gensym "skip-parser")
-           skip-binding `[_# (many* ~skip-parser-sym)]
-           bindings (->> bindings
-                         (partition 2)
-                         (interpose skip-binding)
-                         (apply concat))
-           bindings (concat skip-binding bindings skip-binding)]
+           bindings (skip-transform-bindings skip-parser-sym bindings)]
        `(let [~skip-parser-sym ~skip]
-          (defparser ~name ~bindings
-            ~body)))))
+          (parser ~bindings
+                  ~body)))))
+
+(defmacro defparser
+  "Defines a new monadic parser with the passed in name, bindings and body.
+   Can deal with :skip skip-parser like the parser macro."
+  ([name bindings body]
+     `(def ~name (parser ~bindings
+                         ~body)))
+  ([name skip-keyword skip bindings body]
+     `(def ~name (parser ~skip-keyword
+                         -skip
+                         ~bindings
+                         ~body))))
 
 (defn parse
   "Uses a parser to parse the input and returns the result of the parsing process"
@@ -63,7 +75,7 @@
    and returns the input without it's first symbol as the new state"
   []
   (fn [in]
-    (if-not (empty? in)
+    (when-not (empty? in)
       [(first in) (rest in)])))
 
 (defn of
@@ -71,9 +83,17 @@
    predicate evaluates to a value that is not logically false"
   [predicate]
   (fn [in]
-    (if (and (not (empty? in))
+    (when (and (not (empty? in))
 	     (predicate (first in)))
       [(first in) (rest in)])))
+
+(defn pnot
+  "A parser that fails when p succeeds and succeeds when p fails"
+  [p]
+  (fn [in]
+    (if (p in)
+      nil
+      [nil in])))
 
 (defn literal
   "Takes a literal expression and returns a parser that matches the first input symbol if
@@ -136,3 +156,33 @@
   (parser [state (fetch-state)
 	   _     #(if (predicate state) [% state] nil)]
 	  nil))
+
+;;; some useful parsers
+
+(defn surround
+  "A parser that first runs before, then p, then after and returns the result of p when all succeed"
+  ([p around]
+     (surround p around around))
+  ([p before after]
+     (parser [_ before
+              res p
+              _ after]
+             res)))
+
+(defn surrounder
+  "Returns a function that transforms a parser with the surround function"
+  ([around]
+     (surrounder around around))
+  ([before after]
+     #(surround % before after)))
+
+(defn times
+  "A parser that applies p exactly n times"
+  [p n]
+  (fn [in]
+    (if (zero? n)
+      [nil in]
+      (let [tparser (parser [fst p
+                             rst (times p (dec n))]
+                            (cons fst rst))]
+        (tparser in)))))
