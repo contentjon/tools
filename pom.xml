@@ -78,12 +78,4 @@
     </repository>
   </repositories>
 
-  <distributionManagement>
-    <repository>
-      <id>clojars</id>
-      <name>Clojars</name>
-      <url>scp://clojars.org/repo</url>
-    </repository>
-  </distributionManagement>
-
 </project>
