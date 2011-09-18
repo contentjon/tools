@@ -145,13 +145,15 @@
      (times p min min))
   ([p min max]
      { :pre [(<= min max)]}
-     (reduce #(parser [f (if (< (- max %2) min)
-                           p
-                           (maybe p))
-                       r %1]
-                      (cons f r))
-             (lambda)
-             (range 1 (+ 1 max)))))
+     (letfn [(next-parser [n]
+               (if (= n max)
+                 (lambda)
+                 (parser [f (if (< n min)
+                              p
+                              (maybe p))
+                          r (next-parser (inc n))]
+                   (cons f r))))]
+       (next-parser 0))))
 
 ;;; a few additional composite rules
 
