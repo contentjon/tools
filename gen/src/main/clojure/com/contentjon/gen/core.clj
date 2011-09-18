@@ -144,15 +144,14 @@
   ([p min]
      (times p min min))
   ([p min max]
-     (if (< max min)
-       (throw (IllegalArgumentException. "max < min"))
-       (reduce #(parser [f (if (< (- max %2) min)
-                             p
-                             (maybe p))
-                         r %1]
-                        (cons f r))
-               (lambda)
-               (range 1 (+ 1 max))))))
+     { :pre [(<= min max)]}
+     (reduce #(parser [f (if (< (- max %2) min)
+                           p
+                           (maybe p))
+                       r %1]
+                      (cons f r))
+             (lambda)
+             (range 1 (+ 1 max)))))
 
 ;;; a few additional composite rules
 

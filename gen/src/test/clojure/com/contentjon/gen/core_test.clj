@@ -23,8 +23,8 @@
     (parse-success (times (of integer?) 1 3) [])            => false
     (parse-success (times (of integer?) 1 3) nil)           => false
     (parse-success (times (of integer?) 2 3) [8])           => false
-    (parse-success (times (of integer?) 3 2) [])            => (throws IllegalArgumentException)
-    (parse-success (times nil 4 1) [])                      => (throws IllegalArgumentException)
+    (parse-success (times (of integer?) 3 2) [])            => (throws AssertionError)
+    (parse-success (times nil 4 1) [])                      => (throws AssertionError)
     (parse-success (times (of integer?) "x" 2) [])          => (throws ClassCastException)
     (parse-success (times (of integer?) 1 "x") [])          => (throws ClassCastException)
     (parse-success (times nil "x" "y") [])                  => (throws ClassCastException)
