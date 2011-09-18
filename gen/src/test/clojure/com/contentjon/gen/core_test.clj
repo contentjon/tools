@@ -23,6 +23,10 @@
     (parse-success (times (of integer?) 1 3) [])            => false
     (parse-success (times (of integer?) 1 3) nil)           => false
     (parse-success (times (of integer?) 2 3) [8])           => false
+    (parse-success (times (of integer?) 2 3) [8 8 "xy"])    => false
+    (parse-success (times (of integer?) 3 3) [8 "xy" 4])    => false
+    (parse-success (times (of integer?) 1 1) ["xy"])        => false
+    (parse-success (times (of integer?) 0 1) ["xy"])        => false
 
     ; parse time exceptions
     (parse-success (times "x" 1 8) []) => (throws ClassCastException)
