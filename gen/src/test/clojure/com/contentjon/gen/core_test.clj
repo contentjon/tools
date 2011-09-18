@@ -23,12 +23,16 @@
     (parse-success (times (of integer?) 1 3) [])            => false
     (parse-success (times (of integer?) 1 3) nil)           => false
     (parse-success (times (of integer?) 2 3) [8])           => false
-    (parse-success (times (of integer?) 3 2) [])            => (throws AssertionError)
-    (parse-success (times nil 4 1) [])                      => (throws AssertionError)
-    (parse-success (times (of integer?) "x" 2) [])          => (throws ClassCastException)
-    (parse-success (times (of integer?) 1 "x") [])          => (throws ClassCastException)
-    (parse-success (times nil "x" "y") [])                  => (throws ClassCastException)
-    (parse-success (times "x" 1 8) [])                      => (throws ClassCastException)
-    (parse-success (times nil 1 4) [])                      => (throws NullPointerException)
-    (parse-success (times (of integer?) nil 6) [])          => (throws NullPointerException)
-    (parse-success (times (of integer?) 3 nil) [])          => (throws NullPointerException)))
+
+    ; parse time exceptions
+    (parse-success (times "x" 1 8) []) => (throws ClassCastException)
+    (parse-success (times nil 1 4) []) => (throws NullPointerException)
+
+    ; parser generation exceptions
+    (times (of integer?) 3 2)   => (throws AssertionError)
+    (times nil 4 1)             => (throws AssertionError)
+    (times (of integer?) "x" 2) => (throws ClassCastException)
+    (times (of integer?) 1 "x") => (throws ClassCastException)
+    (times nil "x" "y")         => (throws ClassCastException)    
+    (times (of integer?) nil 6) => (throws NullPointerException)
+    (times (of integer?) 3 nil) => (throws NullPointerException)))
