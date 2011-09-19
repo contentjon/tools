@@ -89,7 +89,7 @@
   [predicate]
   (fn [in]
     (when (and (not (empty? in))
-	     (predicate (first in)))
+               (predicate (first in)))
       [(first in) (rest in)])))
 
 (defn pnot
@@ -148,11 +148,12 @@
      (letfn [(next-parser [n]
                (if (= n max)
                  (lambda)
-                 (parser [f (if (< n min)
-                              p
-                              (maybe p))
-                          r (next-parser (inc n))]
-                   (cons f r))))]
+                 (let [next (parser [f p
+                                     r (next-parser (inc n))]
+                              (cons f r))]
+                   (if (< n min)
+                     next
+                     (maybe next)))))]
        (next-parser 0))))
 
 ;;; a few additional composite rules
