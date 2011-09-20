@@ -1,4 +1,4 @@
-(ns com.contentjon.fn.algo_test
+(ns com.contentjon.fn.algo-test
   (:use [clojure.test :only [deftest]]
         midje.sweet
         [com.contentjon.fn.algo :reload true]))
