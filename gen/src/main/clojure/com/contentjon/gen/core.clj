@@ -12,6 +12,11 @@
 (def #^{:doc "Takes the result of a parser and checks if it failed"}
   parser-fail? nil?)
 
+(defn parse-result
+  "Return the result of a parse process"
+  [in]
+  (first in))
+
 (defn parser-finished?
   "Checks if a parser has successfully consumed all of it's input"
   [in]
@@ -61,7 +66,7 @@
 (defn parse
   "Uses a parser to parse the input and returns the result of the parsing process"
   [rule in]
-  (first (rule in)))
+  (rule in))
 
 ;;; public matching functions
 
@@ -84,7 +89,7 @@
   [predicate]
   (fn [in]
     (when (and (not (empty? in))
-	     (predicate (first in)))
+               (predicate (first in)))
       [(first in) (rest in)])))
 
 (defn pnot
@@ -131,7 +136,25 @@
   [rule]
   (parser [first rule
            rest  (many* rule)]
-          (concat [first] rest)))
+    (concat [first] rest)))
+
+(defn times
+  "A parser that applies p between min and max times.
+   If only min is given, the parser is applied exactly min times"
+  ([p min]
+     (times p min min))
+  ([p min max]
+     { :pre [(<= min max)]}
+     (letfn [(next-parser [n]
+               (if (= n max)
+                 (lambda)
+                 (let [next (parser [f p
+                                     r (next-parser (inc n))]
+                              (cons f r))]
+                   (if (< n min)
+                     next
+                     (maybe next)))))]
+       (next-parser 0))))
 
 ;;; a few additional composite rules
 
@@ -175,14 +198,3 @@
      (surrounder around around))
   ([before after]
      #(surround % before after)))
-
-(defn times
-  "A parser that applies p exactly n times"
-  [p n]
-  (fn [in]
-    (if (zero? n)
-      [nil in]
-      (let [tparser (parser [fst p
-                             rst (times p (dec n))]
-                            (cons fst rst))]
-        (tparser in)))))
