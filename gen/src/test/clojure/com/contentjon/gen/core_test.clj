@@ -29,8 +29,8 @@
     (parse-success (times (of integer?) 0 1) ["xy"])        => false
 
     ; parse time exceptions
-    (parse-success (times "x" 1 8) []) => (throws ClassCastException)
-    (parse-success (times nil 1 4) []) => (throws NullPointerException)
+    (parse-success (times "x" 1 8) []) => (throws IllegalArgumentException)
+    (parse-success (times nil 1 4) []) => (throws IllegalArgumentException)
 
     ; parser generation exceptions
     (times (of integer?) 3 2)   => (throws AssertionError)

@@ -13,7 +13,7 @@
 (def #^{:doc "Takes the result of a parser and checks if it failed"}
   parser-fail? nil?)
 
-(defn parse-result
+(defn result
   "Return the result of a parse process"
   [in]
   (first in))
@@ -21,46 +21,23 @@
 (defn parser-finished?
   "Checks if a parser has successfully consumed all of it's input"
   [in]
-  (and (not (parser-fail? in))
+  (and (clojure.core/not (parser-fail? in))
        (empty? (second in))))
 
-;;; this section defines what can be turned into a parser function
-;;; and how this is done
-
-(defn- without-match [match in]
-  (.substring in (.length match) (.length in)))
+(defn parse
+  "Uses a parser to parse the input and returns the result of the parsing process"
+  [rule in]
+  (rule in))
 
 (defprotocol AsParser
+  "this section defines what can be turned into a parser function
+    and how this is done"
   (as-parser [_]))
-
-(extend-protocol AsParser
-  clojure.lang.IFn
-  (as-parser [this] this)
-  java.lang.Character
-  (as-string [this]
-    (fn [in]
-      (let [length (.length in)]
-        (when (and (> length 0)
-                   (= (.charAt in 0) this))
-          [this (.substring 1 length)]))))
-  java.lang.String
-  (as-parser [this]
-    (fn [in]
-      (when (.startsWith in this)
-        [this (without-match this in)])))
-  java.util.regex.Pattern
-  (as-parser [this]
-    (fn [in]
-      (let [pat (java.util.regex.Pattern/compile (str "^" this ""))
-            m   (.matcher pat in)]
-        (when (.find m)
-          (let [match (.group m)]
-            [match (without-match match in)]))))))
 
 ;;; helpers for defining or running parsers
 
 (defn- skip-transform-bindings [skip-parser-sym bindings]
-  (let [skip-binding `[_# (many* ~skip-parser-sym)]
+  (let [skip-binding `[_# (* ~skip-parser-sym)]
         bindings (->> bindings
                       (partition 2)
                       (interpose skip-binding)
@@ -70,7 +47,10 @@
 (defn- bindings->parser [bindings]
   (->> bindings
        (partition 2)
-       (map (fn [[s p]] (vector s `(as-parser ~p))))
+       (map (fn [[s p]]
+              (if (some #{s} [:when :let])
+                [s p]
+                (vector s `(as-parser ~p)))))
        (apply concat)))
 
 (defmacro parser
@@ -103,11 +83,6 @@
                          ~bindings
                          ~body))))
 
-(defn parse
-  "Uses a parser to parse the input and returns the result of the parsing process"
-  [rule in]
-  (rule in))
-
 ;;; public matching functions
 
 (defn lambda
@@ -128,7 +103,7 @@
    predicate evaluates to a value that is not logically false"
   [predicate]
   (fn [in]
-    (when (and (not (empty? in))
+    (when (and (clojure.core/not (empty? in))
                (predicate (first in)))
       [(first in) (rest in)])))
 
@@ -147,20 +122,21 @@
 (defn ?
   "The parser may apply another parser or not"
   [rule]
-  (one rule (lambda)))
+  (or rule (lambda)))
 
-(declare many+)
+(declare +)
 
 (defn *
   "Returns a parser that applies a subparser 0 or more times to it's input"
   [rule]
-  (? (many+ rule)))
+  (? (+ rule)))
 
 (defn +
   "Returns a parser that applies a subparser 1 or more times to it's input"
   [rule]
   (parser [first rule
-           rest  (many* rule)]
+           rest  (* rule)]
+
     (concat [first] rest)))
 
 (defn times
@@ -211,3 +187,76 @@
      (surrounder around around))
   ([before after]
      #(surround % before after)))
+
+(defn log
+  "Wraps a parser and logs its input"
+  [msg rule]
+  (fn [in]
+    (println msg in)
+    (rule in)))
+
+;;; parser coercsions
+
+(defn- without-match [match in]
+  (.substring in (.length match) (.length in)))
+
+(defn descend [rule]
+  (parser [stream (fetch-state) :when (clojure.core/not (empty? stream))
+           :let  [f (first stream)]
+           _      (set-state (if (string? f)
+                               f
+                               (seq (first stream))))
+           result rule
+           _      (assert-state empty?)
+           _      (set-state (rest stream))]
+          result))
+
+(defn maybe-descend [rule]
+  (fn [in]
+    (if (sequential? in)
+      (parse (descend rule) in)
+      (parse rule in))))
+
+(extend-protocol AsParser
+  java.lang.Character
+  (as-parser [this]
+    (fn [in]
+      (let [length (.length in)]
+        (when (and (> length 0)
+                   (= (.charAt in 0) this))
+          [this (.substring in 1 length)]))))
+  java.lang.String
+  (as-parser [this]
+    (maybe-descend
+     (fn [in]
+        (when (.startsWith in this)
+          [this (without-match this in)]))))
+  java.util.regex.Pattern
+  (as-parser [this]
+    (maybe-descend
+     (fn [in]
+       (let [pat (java.util.regex.Pattern/compile (str "^" this ""))
+             m   (.matcher pat in)]
+         (when (.find m)
+           (let [match (.group m)]
+             [match (without-match match in)]))))))
+  clojure.lang.IPersistentVector
+  (as-parser [this]
+    (let [rule (* (apply or (map as-parser this)))]
+      (descend rule)))
+  clojure.lang.IPersistentMap
+  (as-parser [this]
+    (descend
+     (parser [pairs (+ (descend
+                        (parser [k (of this)
+                                 v (get this k)]
+                                [k v])))]
+             (into {} pairs))))
+  clojure.lang.Fn
+  (as-parser [this] this)
+  java.lang.Object
+  (as-parser [this]
+    (throw (java.lang.IllegalArgumentException. (str "Not a supported parser type: " this))))
+  nil
+  (as-parser [_]
+    (throw (java.lang.IllegalArgumentException. "Not a supported parser type: nil"))))

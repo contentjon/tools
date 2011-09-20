@@ -16,4 +16,12 @@
   <artifactId>gen</artifactId>
   <packaging>jar</packaging>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.contentjon.tools</groupId>
+      <artifactId>fn</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
 </project>

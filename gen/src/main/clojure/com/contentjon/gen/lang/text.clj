@@ -16,6 +16,9 @@
 (defn joiner [separator]
   (partial str/join separator))
 
+(defn caller [f]
+  (comp f list))
+
 (def prepend #(str %2 %1))
 (def append  str)
 
@@ -26,18 +29,11 @@
 (def words      (joiner " "))
 (def lines      (joiner "\n"))
 (def paragraphs (joiner "\n\n"))
-(def commas     (joiner ", "))
-(def semicolons (joiner "; "))
+(def commas     (joiner ","))
+(def semicolons (joiner ";"))
 
-(def words*      (applier words))
-(def lines*      (applier lines))
-(def paragraphs* (applier paragraphs))
-(def commas*     (applier commas))
-(def semicolons* (applier semicolons))
-
-(defn block [cmds]
-  (-> cmds
-      lines*
-      (prepend *endl*)
-      indent
-      (append *endl*)))
+(def words*      (caller words))
+(def lines*      (caller lines))
+(def paragraphs* (caller paragraphs))
+(def commas*     (caller commas))
+(def semicolons* (caller semicolons))
