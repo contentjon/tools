@@ -1,6 +1,7 @@
 (ns com.contentjon.gen.core
   "Contains general parser functions and the definition of the parser monad, which are used
    in more specialized parsers."
+  (:refer-clojure :exclude [+ * not or])
   (:use [clojure.contrib.monads]))
 
 (def #^{:doc "Defines the parser monad. Currently this is (state-t maybe-m).
@@ -23,6 +24,39 @@
   (and (not (parser-fail? in))
        (empty? (second in))))
 
+;;; this section defines what can be turned into a parser function
+;;; and how this is done
+
+(defn- without-match [match in]
+  (.substring in (.length match) (.length in)))
+
+(defprotocol AsParser
+  (as-parser [_]))
+
+(extend-protocol AsParser
+  clojure.lang.IFn
+  (as-parser [this] this)
+  java.lang.Character
+  (as-string [this]
+    (fn [in]
+      (let [length (.length in)]
+        (when (and (> length 0)
+                   (= (.charAt in 0) this))
+          [this (.substring 1 length)]))))
+  java.lang.String
+  (as-parser [this]
+    (fn [in]
+      (when (.startsWith in this)
+        [this (without-match this in)])))
+  java.util.regex.Pattern
+  (as-parser [this]
+    (fn [in]
+      (let [pat (java.util.regex.Pattern/compile (str "^" this ""))
+            m   (.matcher pat in)]
+        (when (.find m)
+          (let [match (.group m)]
+            [match (without-match match in)]))))))
+
 ;;; helpers for defining or running parsers
 
 (defn- skip-transform-bindings [skip-parser-sym bindings]
@@ -33,6 +67,12 @@
                       (apply concat))]
     (concat skip-binding bindings skip-binding)))
 
+(defn- bindings->parser [bindings]
+  (->> bindings
+       (partition 2)
+       (map (fn [[s p]] (vector s `(as-parser ~p))))
+       (apply concat)))
+
 (defmacro parser
   "Creates a new monadic parser with the passed in bindings and body.
    It optionally accepts :skip skip-parser as first arguments, in which
@@ -40,7 +80,7 @@
    for dealing with whitespace."
   ([bindings body]
      `(domonad parser-m
-               ~bindings
+               [~@(bindings->parser bindings)]
                ~body))
   ([skip-keyword skip bindings body]
      (when-not (= skip-keyword :skip)
@@ -92,7 +132,7 @@
                (predicate (first in)))
       [(first in) (rest in)])))
 
-(defn pnot
+(defn not
   "A parser that fails when p succeeds and succeeds when p fails"
   [p]
   (fn [in]
@@ -100,38 +140,23 @@
       nil
       [nil in])))
 
-(defn literal
-  "Takes a literal expression and returns a parser that matches the first input symbol if
-   if comparing it for equality with the literal returns true"
-  [lit]
-  (of #(= % lit)))
-
-(defn literals
-  "Takes a collection of literals and matches them in sequence"
-  [col]
-  (if (empty? col)
-    (lambda)
-    (parser [first (literal (first col))
-	     rest  (literals (rest col))]
-	    (concat [first] rest))))
-
 (def #^{:doc "Returns a parser that matches one of multiple alternatives"
 	:arglists '([& rules]) }
-     one (with-monad parser-m m-plus))
+     or (with-monad parser-m m-plus))
 
-(defn maybe
+(defn ?
   "The parser may apply another parser or not"
   [rule]
   (one rule (lambda)))
 
 (declare many+)
 
-(defn many*
+(defn *
   "Returns a parser that applies a subparser 0 or more times to it's input"
   [rule]
-  (maybe (many+ rule)))
+  (? (many+ rule)))
 
-(defn many+
+(defn +
   "Returns a parser that applies a subparser 1 or more times to it's input"
   [rule]
   (parser [first rule
@@ -153,20 +178,8 @@
                               (cons f r))]
                    (if (< n min)
                      next
-                     (maybe next)))))]
+                     (? next)))))]
        (next-parser 0))))
-
-;;; a few additional composite rules
-
-(defn one*
-  "Match zero or more of a choice of several subrules"
-  [& rules]
-  (many* (apply one rules)))
-
-(defn one+
-  "Match one or more of a choice of several subrules"
-  [& rules]
-  (many+ (apply one rules)))
 
 ;;; helper functions that can be used to verify the state of a parser but don't consume
 ;;; any input
