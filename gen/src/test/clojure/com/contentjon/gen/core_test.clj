@@ -33,13 +33,13 @@
     (parse (of "xyz") [ ...xs...]) => (throws ClassCastException)
     (parse (of nil) [ ...xs...])   => (throws NullPointerException)))
 
-(deftest !-test
+(deftest not-test
   (facts
-    (parse-partial (! "xyz") "abc") => [nil "abc"]
-    (parse-partial (! "xyz") "xyz") => parser-fail?
+    (parse-partial (not "xyz") "abc") => [nil "abc"]
+    (parse-partial (not "xyz") "xyz") => parser-fail?
 
     ; parser generation time failures
-    (parse (! nil) [...xs...]) => (throws IllegalArgumentException)))
+    (parse (not nil) [...xs...]) => (throws IllegalArgumentException)))
 
 (deftest or-test
   (facts
