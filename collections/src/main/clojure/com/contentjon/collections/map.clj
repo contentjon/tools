@@ -32,6 +32,6 @@
 
 (defn select-when
   "Takes a map and returns a new map which contains only keys for which
-   pred returns true"
+   the associated value passes pred"
   [m pred]
   (into {} (filter (fn [[k v]] (pred v)) m)))
