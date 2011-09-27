@@ -19,10 +19,11 @@
                      (fn m-plus-parser-t [& ps]
                        (apply m-plus (map as-parser ps))))]))
 
-(def #^{:doc "Defines the parser monad. Currently this is (state-t maybe-m).
-              This means that a parser returns either nil if it fails or
-              a vector containing the parser return value and the remaining
-              input that was not matched"}
+(def #^{:doc "The parser monad is implemented using (state-t maybe-m).
+              nil is used as an error value that lets a parser fail.
+              An additional monad transformer is used wrap monadic values
+              in a call to as-parser, which allows to use a lot of literal
+              values as parsers, such as string, vectors and maps"}
   parser-m
   (parser-t (state-t maybe-m)))
 
@@ -93,7 +94,7 @@
                (predicate (first in)))
       [(first in) (rest in)])))
 
-(defn !
+(defn not
   "A parser that fails when p succeeds and succeeds when p fails"
   [p]
   (fn [in]
