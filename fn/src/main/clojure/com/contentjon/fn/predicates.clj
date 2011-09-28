@@ -1,5 +1,5 @@
 (ns com.contentjon.fn.predicates
-  (:refer-clojure :exclude [class? every?]))
+  (:refer-clojure :exclude [class? every? contains?]))
 
 (defn and?
   "Takes n predicates and returns a predicate that returns
@@ -56,6 +56,12 @@
    when an input value returns true for elements of a sequence"
   [pred]
   (partial clojure.core/every? pred))
+
+(defn contains?
+  "Take a key and returns a predicates that checks whether the
+   key exists in its input parameter"
+  [key]
+  #(clojure.core/contains? % key))
 
 (defn count?
   "Takes an integer and returns a predicate
