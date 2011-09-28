@@ -163,6 +163,13 @@
   ([before after]
      #(surround % before after)))
 
+(defn log
+  "A debug parser that logs its input with an additional message"
+  [p msg]
+  (fn [in]
+    (println msg in)
+    (p in)))
+
 ;;; types extended to be parsers
 
 (defn assert-state
@@ -181,7 +188,7 @@
   (parser [stream (fetch-state)
            :when  (clojure.core/not (empty? stream))
            :let   [f (first stream)]
-           :when  (clojure.core/or (string? f) (sequential? f))
+           :when  (clojure.core/or (string? f) (isa? (class f) clojure.lang.Seqable))
            _      (set-state (if (string? f)
                                f
                                (seq (first stream))))
@@ -230,7 +237,7 @@
      (parser [pairs (+ (descend
                         (parser [k (of this)
                                  v (get this k)]
-                                [k v])))]
+                          [k v])))]
              (into {} pairs))))
   clojure.lang.Fn
   (as-parser [this] this)
