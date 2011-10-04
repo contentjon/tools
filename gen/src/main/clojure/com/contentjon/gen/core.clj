@@ -6,7 +6,7 @@
 
 (defprotocol AsParser
   "this section defines what can be turned into a parser function
-    and how this is done"
+   and how this is done"
   (as-parser [_]))
 
 (defn parser-t [m]
@@ -32,7 +32,7 @@
 (defmacro parser
   "Creates a new monadic parser with the passed in bindings and body."
   ([bindings body]
-     `(domonad parser-m ~bindings ~body)))
+    `(domonad parser-m ~bindings ~body)))
 
 (defmacro defparser
   "Defines a new monadic parser with the passed in name,
