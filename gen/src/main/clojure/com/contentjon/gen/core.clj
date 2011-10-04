@@ -6,7 +6,7 @@
 
 (defprotocol AsParser
   "this section defines what can be turned into a parser function
-    and how this is done"
+   and how this is done"
   (as-parser [_]))
 
 (defn parser-t [m]
@@ -32,7 +32,7 @@
 (defmacro parser
   "Creates a new monadic parser with the passed in bindings and body."
   ([bindings body]
-     `(domonad parser-m ~bindings ~body)))
+    `(domonad parser-m ~bindings ~body)))
 
 (defmacro defparser
   "Defines a new monadic parser with the passed in name,
@@ -163,6 +163,14 @@
   ([before after]
      #(surround % before after)))
 
+(defn log
+  "A debug parser that logs its input with an additional message"
+  [p msg]
+  (fn [in]
+    (let [result ((as-parser p) in)]
+      (println msg in "=>" result)
+      result)))
+
 ;;; types extended to be parsers
 
 (defn assert-state
@@ -181,7 +189,7 @@
   (parser [stream (fetch-state)
            :when  (clojure.core/not (empty? stream))
            :let   [f (first stream)]
-           :when  (clojure.core/or (string? f) (sequential? f))
+           :when  (clojure.core/or (string? f) (isa? (class f) clojure.lang.Seqable))
            _      (set-state (if (string? f)
                                f
                                (seq (first stream))))
@@ -230,7 +238,7 @@
      (parser [pairs (+ (descend
                         (parser [k (of this)
                                  v (get this k)]
-                                [k v])))]
+                          [k v])))]
              (into {} pairs))))
   clojure.lang.Fn
   (as-parser [this] this)

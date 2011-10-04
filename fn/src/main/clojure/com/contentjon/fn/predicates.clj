@@ -47,7 +47,8 @@
   [min max & { :keys [type] :or { type :closed }}]
   (let [pred  (fn [op x] (op min x max))
         types { :open < :closed <= }]
-    (partial pred (get types type))))
+    (and? number?
+          (partial pred (get types type)))))
 
 (def not? complement)
 
