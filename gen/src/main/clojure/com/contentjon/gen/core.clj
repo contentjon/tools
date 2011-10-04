@@ -167,8 +167,9 @@
   "A debug parser that logs its input with an additional message"
   [p msg]
   (fn [in]
-    (println msg in)
-    (p in)))
+    (let [result ((as-parser p) in)]
+      (println msg in "=>" result)
+      result)))
 
 ;;; types extended to be parsers
 
