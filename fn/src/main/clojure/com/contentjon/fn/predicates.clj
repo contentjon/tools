@@ -33,6 +33,11 @@
   [f val]
   (comp (eq? val) f))
 
+(defn in?
+  "Returns a predicate that checks if an input value is in a set of values"
+  [& vals]
+  (set vals))
+
 (defn class?
   "Takes a parameter clazz and returns a predicate that checks if apllying
    class to an input value equals clazz"

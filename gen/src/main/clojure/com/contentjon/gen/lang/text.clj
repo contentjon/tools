@@ -25,6 +25,7 @@
 (def parens   (embracer "(" ")"))
 (def braces   (embracer "{" "}"))
 (def brackets (embracer "[" "]"))
+(def quotes   (embracer "\""))
 
 (def words      (joiner " "))
 (def lines      (joiner "\n"))
