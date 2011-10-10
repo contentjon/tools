@@ -171,6 +171,14 @@
       (println msg in "=>" result)
       result)))
 
+(defn -g-> 
+  "Takes a parser p and a generator function g. 
+   Returns a parser that accepts the same input as p, but additionally 
+   applies g to its result."
+  [p g]
+  (parser [res p]
+    (g res)))
+
 ;;; types extended to be parsers
 
 (defn assert-state
