@@ -31,6 +31,7 @@
 (def lines      (joiner "\n"))
 (def paragraphs (joiner "\n\n"))
 (def commas     (joiner ","))
+(def colons     (joiner ":"))
 (def semicolons (joiner ";"))
 
 (def words*      (caller words))
