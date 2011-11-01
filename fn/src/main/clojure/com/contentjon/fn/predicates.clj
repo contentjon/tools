@@ -76,7 +76,8 @@
    at least one of those predicates applies to every element of an
    input sequence"
   [& preds]
-  (every? (apply or? preds)))
+  (and? sequential?
+        (every? (apply or? preds))))
 
 (defn property?
   "Takes a key and a predicate. Returns a function that first reads
