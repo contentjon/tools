@@ -1,8 +1,9 @@
 (ns com.contentjon.gen.core
-  "Contains general parser functions and the definition of the parser monad, which are used
-   in more specialized parsers."
+  "Contains general parser functions and the definition of the parser
+   monad, which are used in more specialized parsers."
   (:refer-clojure :exclude [+ * not or])
-  (:use [clojure.contrib.monads]))
+  (:use [clojure.contrib.monads]
+        [com.contentjon.fn.algo :only (applier)]))
 
 (defprotocol AsParser
   "this section defines what can be turned into a parser function
@@ -105,6 +106,8 @@
 	:arglists '([& rules]) }
      or (with-monad parser-m m-plus))
 
+(def or* (applier or))
+
 (defn ?
   "The parser may apply another parser or not"
   [rule]
@@ -147,7 +150,8 @@
 ;;; some useful parsers
 
 (defn surround
-  "A parser that first runs before, then p, then after and returns the result of p when all succeed"
+  "A parser that first runs before, then p, then after and returns
+   the result of p when all succeed"
   ([p around]
      (surround p around around))
   ([p before after]
@@ -157,18 +161,29 @@
              res)))
 
 (defn surrounder
-  "Returns a function that transforms a parser with the surround function"
+  "Returns a function that transforms a parser with the
+   surround function"
   ([around]
      (surrounder around around))
   ([before after]
      #(surround % before after)))
 
+(defn aba
+  "Similar to sourround but it returns the sourrunded
+   element as well"
+  [a b]
+  (parser [before a
+           mid    b
+           after  a]
+    [before mid after]))
+
 (defn log
   "A debug parser that logs its input with an additional message"
   [p msg]
   (fn [in]
+    (println "msg" in "=>")
     (let [result ((as-parser p) in)]
-      (println msg in "=>" result)
+      (println "\t" result)
       result)))
 
 (defn -g-> 
@@ -178,6 +193,9 @@
   [p g]
   (parser [res p]
     (g res)))
+
+(defn replacer [p r]
+  (-g-> p (constantly r)))
 
 ;;; types extended to be parsers
 
@@ -211,6 +229,12 @@
     (if (sequential? in)
       ((descend rule) in)
       (rule in))))
+
+(defmacro tree-parser [bindings body]
+  `(descend (parser ~bindings ~body)))
+
+(defmacro deftree-parser [n bindings body]
+  `(def ~n (tree-parser ~bindings ~body)))
 
 (extend-protocol AsParser
   java.lang.Character
