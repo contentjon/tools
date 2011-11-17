@@ -85,8 +85,7 @@
     (parse-partial (* (? "bar")) "")         => [nil ""]
     (parse-partial (+ (? (of integer?))) []) => [nil []]
     
-    ; parser generation time failures
-    (* nil) => (throws IllegalArgumentException)))
+    (parse (* nil) ...xs...) => (throws RuntimeException))) ; wrapped IllegalArgumentException
 
 (deftest +-test
   (facts
@@ -104,7 +103,7 @@
     (parse-partial (+ (? (of integer?))) []) => [nil []]
     
     ; parser generation time failures
-    (+ nil) => (throws IllegalArgumentException)))
+    (parse (+ nil) ...xs...) => (throws IllegalArgumentException)))
 
 (deftest test-times
   (facts

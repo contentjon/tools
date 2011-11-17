@@ -123,10 +123,16 @@
 (defn +
   "Returns a parser that applies a subparser 1 or more times to it's input"
   [rule]
-  (parser [first rule
-           rest  (if first (* rule) (lambda))]
-    (when first
-      (cons first rest))))
+  (fn [in]
+    (let [rule (as-parser rule)]
+      (loop [unparsed in
+             result   nil]
+        (if-let [parsed (rule unparsed)]
+          (if (first parsed)
+            (recur (second parsed)
+                   [(conj (vec (first result)) (first parsed)) (second parsed)])
+            [(first result) unparsed])
+          result)))))
 
 (defn times
   "A parser that applies p between min and max times.
