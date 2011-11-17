@@ -8,7 +8,7 @@
   (facts
     (parse (lambda) [1]) => falsey
     (parse (lambda) nil) => falsey
-   
+
     (parse-partial (lambda) [])    => [nil []]
     (parse-partial (lambda) [1])   => [nil [1]]
     (parse-partial (lambda) "123") => [nil "123"]))
@@ -17,7 +17,7 @@
   (facts
     (parse (any) [])  => falsey
     (parse (any) [1]) => 1
-    
+
     (parse-partial (any) [1 2 3]) => [1 [2 3]]
     (parse-partial (any) "abc")   => [\a [\b \c]]))
 
@@ -26,7 +26,7 @@
     (parse (of integer?) [1])      => 1
     (parse (of map?)     [{:a 1}]) => {:a 1}
     (parse (of string?)  [1])      => nil
-    
+
     (parse-partial (of string?) ["1" "ab"]) => ["1" ["ab"]]
 
     ; parser generation time failures
@@ -51,7 +51,7 @@
     (parse (* (or "xyz" (of integer?))) [1]) => [1]
     (parse (* (or "xyz" (of integer?))) [1 "xyz"]) => [1 "xyz"]
     (parse (* (or "xyz" (of integer?))) [1 "xyz" "xyz" 1 1]) => [1 "xyz" "xyz" 1 1]
-    
+
     (parse (or) [1]) => parser-fail?
 
     ; parser generation time failures
@@ -76,16 +76,16 @@
     (parse (* "bar") ["bar" "bar"]) => ["bar" "bar"]
     (parse (* "bar") "bar")         => ["bar"]
     (parse (* "bar") "barbar")      => ["bar" "bar"]
-    
+
     (parse-partial (* "bar") "")     => [nil ""]
     (parse-partial (? (* "bar")) "") => [nil ""]
-    
+
     ; * should be able to handle this case without
     ; blowing the stack
     (parse-partial (* (? "bar")) "")         => [nil ""]
     (parse-partial (+ (? (of integer?))) []) => [nil []]
-    
-    (parse (* nil) ...xs...) => (throws RuntimeException))) ; wrapped IllegalArgumentException
+
+    (parse (* nil) ...xs...) => (throws IllegalArgumentException)))
 
 (deftest +-test
   (facts
@@ -93,15 +93,15 @@
     (parse (+ "bar") ["bar" "bar"]) => ["bar" "bar"]
     (parse (+ "bar") "bar")         => ["bar"]
     (parse (+ "bar") "barbar")      => ["bar" "bar"]
-    
+
     (parse (+ "bar") "")             => parser-fail?
     (parse-partial (? (+ "bar")) "") => [nil ""]
-    
+
     ; + should be able to handle this case without
     ; blowing the stack
     (parse-partial (+ (? "bar")) "")         => [nil ""]
     (parse-partial (+ (? (of integer?))) []) => [nil []]
-    
+
     ; parser generation time failures
     (parse (+ nil) ...xs...) => (throws IllegalArgumentException)))
 
@@ -113,7 +113,7 @@
     (parse (times (of integer?) 3) [5 4 11]) => [5 4 11]
     (parse (times (of integer?) 1) [])       => parser-fail?
     (parse (times (of integer?) 1) [8 7])    => parser-fail?
-    
+
 
     ; with boundaries
     (parse (times (of integer?) 3 3) [1 2 3])       => [1 2 3]
@@ -140,7 +140,7 @@
 
     (parse (times (? (of integer?)) 3) [1 2 3]) => [1 2 3]
     (parse (times (? (of integer?)) 3) [1 2])   => [1 2]
-    
+
     ; parse time exceptions
     (parse (times nil 1 4) []) => (throws IllegalArgumentException)
 
@@ -149,6 +149,6 @@
     (times nil 4 1)             => (throws AssertionError)
     (times (of integer?) "x" 2) => (throws ClassCastException)
     (times (of integer?) 1 "x") => (throws ClassCastException)
-    (times nil "x" "y")         => (throws ClassCastException)    
+    (times nil "x" "y")         => (throws ClassCastException)
     (times (of integer?) nil 6) => (throws NullPointerException)
     (times (of integer?) 3 nil) => (throws NullPointerException)))
