@@ -113,12 +113,18 @@
   [rule]
   (or rule (lambda)))
 
-(declare +)
-
 (defn *
   "Returns a parser that applies a subparser 0 or more times to it's input"
   [rule]
-  (? (+ rule)))
+  (fn [in]
+    (let [rule (as-parser rule)]
+      (loop [unparsed in
+             result   []]
+        (let [[next-res next-unparsed] (rule unparsed)]
+          (if next-res
+            (recur next-unparsed
+                   (conj result next-res))
+            [(seq result) unparsed]))))))
 
 (defn +
   "Returns a parser that applies a subparser 1 or more times to it's input"
@@ -186,9 +192,9 @@
       (println "\t" result)
       result)))
 
-(defn -g-> 
-  "Takes a parser p and a generator function g. 
-   Returns a parser that accepts the same input as p, but additionally 
+(defn -g->
+  "Takes a parser p and a generator function g.
+   Returns a parser that accepts the same input as p, but additionally
    applies g to its result."
   [p g]
   (parser [res p]
