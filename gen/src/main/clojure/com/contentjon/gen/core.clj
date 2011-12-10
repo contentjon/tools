@@ -101,8 +101,9 @@
    evaluates to a truthy value, or fails otherwise."
   ([pred]
      (fn [in]
-       (if-let [res (-> in first pred)]
-         [res (rest in)]))))
+       (when (clojure.core/not (empty? in))
+         (if-let [res (-> in first pred)]
+           [res (rest in)])))))
 
 (defn not
   "A parser that fails when p succeeds and succeeds when p fails"
@@ -196,7 +197,7 @@
   "A debug parser that logs its input with an additional message"
   [p msg]
   (fn [in]
-    (println "msg" in "=>")
+    (println msg in "=>")
     (let [result ((as-parser p) in)]
       (println "\t" result)
       result)))
@@ -260,9 +261,14 @@
    the stream, to match one of the composing parsers of the multiparser, and thus
    perform the actual processing of the input"
   [n dispatch-p]
-  `(defmulti ~n
-     (fn [in#]
-       (result (~dispatch-p in#)))))
+  `(do
+    (defmulti ~n
+       (fn [in#]
+         (when (clojure.core/not (empty? in#))
+           (result (~dispatch-p in#)))))
+    (defmethod ~n nil
+       [in#]
+       nil)))
 
 (defmacro defparser-method
   "Defines a parser for a given dispatch value as returned by the dispatch parser
