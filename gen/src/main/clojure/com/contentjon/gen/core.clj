@@ -95,6 +95,16 @@
                (predicate (first in)))
       [(first in) (rest in)])))
 
+(defn extract
+  "Takes a predicate and returns a parser that applies it to the first element
+   in the input stream, and returns the result of the predicate if the operation
+   evaluates to a truthy value, or fails otherwise."
+  ([pred]
+     (fn [in]
+       (when (clojure.core/not (empty? in))
+         (if-let [res (-> in first pred)]
+           [res (rest in)])))))
+
 (defn not
   "A parser that fails when p succeeds and succeeds when p fails"
   [p]
@@ -187,7 +197,7 @@
   "A debug parser that logs its input with an additional message"
   [p msg]
   (fn [in]
-    (println "msg" in "=>")
+    (println msg in "=>")
     (let [result ((as-parser p) in)]
       (println "\t" result)
       result)))
@@ -242,6 +252,32 @@
 (defmacro deftree-parser [n bindings body]
   `(def ~n (tree-parser ~bindings ~body)))
 
+(defmacro defmulti-parser
+  "A multiparser is essentially the parser equivalent to a multimethod. That is,
+   it is comprised of a dispatching parser and one or more parsers. The dispatching
+   parser is applied to an input, and the result of the parsing is used as the dispatch
+   value to select a parser for the given input. Note that the input is not \"consumed\".
+   That means, the process of applying the dispatch parser acts as a \"peek\" into
+   the stream, to match one of the composing parsers of the multiparser, and thus
+   perform the actual processing of the input"
+  [n dispatch-p]
+  `(do
+    (defmulti ~n
+       (fn [in#]
+         (when (clojure.core/not (empty? in#))
+           (result (~dispatch-p in#)))))
+    (defmethod ~n nil
+       [in#]
+       nil)))
+
+(defmacro defparser-method
+  "Defines a parser for a given dispatch value as returned by the dispatch parser
+   of a multiparser"
+  [n dispatch-v p]
+  `(defmethod ~n ~dispatch-v
+     [in#]
+     (~p in#)))
+
 (extend-protocol AsParser
   java.lang.Character
   (as-parser [this]
@@ -278,6 +314,8 @@
                                  v (get this k)]
                           [k v])))]
              (into {} pairs))))
+  clojure.lang.MultiFn
+  (as-parser [this] this)
   clojure.lang.Fn
   (as-parser [this] this)
   java.lang.Object
