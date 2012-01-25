@@ -1,5 +1,5 @@
 (ns com.contentjon.gen.core-test
-  (:refer-clojure :exclude [+ * first not or])
+  (:refer-clojure :exclude [+ * first last not or])
   (:use [com.contentjon.gen.core]
         [clojure.test :only (deftest)]
         [midje.sweet]))
@@ -162,3 +162,12 @@
     (parse (first (of integer?) (of string?)) [1 2]) => nil
     (parse (first (of integer?) (of string?)) ["foobar" 1]) => nil
     (parse (first (of integer?) (of integer?) (of string?)) [1 2 "foo"]) => 1))
+
+(deftest test-last
+  (facts
+    (last) => (lambda)
+    (parse (last (of integer?)) [1]) => 1
+    (parse (last (of integer?)) ["foobar"]) => nil
+    (parse (last (of integer?) (of string?)) [1 "foobar"]) => "foobar"
+    (parse (last (of integer?) (of string?)) [1 2]) => nil
+    (parse (last (of integer?) (of string?)) ["foobar" 1]) => nil))

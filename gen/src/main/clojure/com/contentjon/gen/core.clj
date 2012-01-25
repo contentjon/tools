@@ -1,7 +1,7 @@
 (ns com.contentjon.gen.core
   "Contains general parser functions and the definition of the parser
    monad, which are used in more specialized parsers."
-  (:refer-clojure :exclude [+ * first not or])
+  (:refer-clojure :exclude [+ * first last not or])
   (:use [clojure.contrib.monads]
         [com.contentjon.fn.algo :only (applier)]))
 
@@ -179,6 +179,16 @@
       (parser [ret p
                _   (ignore rest)]
               ret)))
+
+(defn last
+  "A parser that combines the given parsers and returns the
+   results of the last."
+  ([] (lambda))
+  ([& q]
+     (parser [_   (-> q reverse rest reverse ignore)
+              ret (clojure.core/last q)]
+             ret)))
+
 ;;; some useful parsers
 
 (defn surround
