@@ -1,5 +1,5 @@
 (ns com.contentjon.gen.core-test
-  (:refer-clojure :exclude [+ * not or])
+  (:refer-clojure :exclude [+ * first not or])
   (:use [com.contentjon.gen.core]
         [clojure.test :only (deftest)]
         [midje.sweet]))
@@ -152,3 +152,13 @@
     (times nil "x" "y")         => (throws ClassCastException)
     (times (of integer?) nil 6) => (throws NullPointerException)
     (times (of integer?) 3 nil) => (throws NullPointerException)))
+
+(deftest test-first
+  (facts
+    (first) => (lambda)
+    (parse (first (of integer?)) [1]) => 1
+    (parse (first (of integer?)) ["foobar"]) => nil
+    (parse (first (of integer?) (of string?)) [1 "foobar"]) => 1
+    (parse (first (of integer?) (of string?)) [1 2]) => nil
+    (parse (first (of integer?) (of string?)) ["foobar" 1]) => nil
+    (parse (first (of integer?) (of integer?) (of string?)) [1 2 "foo"]) => 1))
