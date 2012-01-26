@@ -1,7 +1,7 @@
 (ns com.contentjon.gen.core
   "Contains general parser functions and the definition of the parser
    monad, which are used in more specialized parsers."
-  (:refer-clojure :exclude [+ * not or])
+  (:refer-clojure :exclude [+ * first last not or])
   (:use [clojure.contrib.monads]
         [com.contentjon.fn.algo :only (applier)]))
 
@@ -49,7 +49,7 @@
 (defn result
   "Return the result of a parse process"
   [in]
-  (first in))
+  (clojure.core/first in))
 
 (defn parser-finished?
   "Checks if a parser has successfully consumed all of it's input"
@@ -63,7 +63,7 @@
   [rule in]
   (when-let [parsed (rule in)]
     (when (parser-finished? parsed)
-      (first parsed))))
+      (clojure.core/first parsed))))
 
 (defn parse-partial
   "Uses a parser to parse the input and returns a vector of parser
@@ -84,7 +84,7 @@
   []
   (fn [in]
     (when-not (empty? in)
-      [(first in) (rest in)])))
+      [(clojure.core/first in) (rest in)])))
 
 (defn of
   "Takes a predicate and returns a parser that matches the first symbol of the input if the
@@ -92,8 +92,8 @@
   [predicate]
   (fn [in]
     (when (and (clojure.core/not (empty? in))
-               (predicate (first in)))
-      [(first in) (rest in)])))
+               (predicate (clojure.core/first in)))
+      [(clojure.core/first in) (rest in)])))
 
 (defn extract
   "Takes a predicate and returns a parser that applies it to the first element
@@ -102,7 +102,7 @@
   ([pred]
      (fn [in]
        (when (clojure.core/not (empty? in))
-         (if-let [res (-> in first pred)]
+         (if-let [res (-> in clojure.core/first pred)]
            [res (rest in)])))))
 
 (defn not
@@ -162,6 +162,32 @@
                      next
                      (? next)))))]
        (next-parser 0))))
+
+(defn- ignore
+  [[first & rest]]
+  (if first
+    (parser [_ first
+             _ (ignore rest)]
+            nil)
+    (lambda)))
+
+(defn first
+  "A parser that combines the given parsers and returns the
+   results of the first."
+  ([] (lambda))
+  ([p & rest]
+      (parser [ret p
+               _   (ignore rest)]
+              ret)))
+
+(defn last
+  "A parser that combines the given parsers and returns the
+   results of the last."
+  ([] (lambda))
+  ([& q]
+     (parser [_   (-> q reverse rest reverse ignore)
+              ret (clojure.core/last q)]
+             ret)))
 
 ;;; some useful parsers
 
@@ -230,11 +256,11 @@
 (defn descend [rule]
   (parser [stream (fetch-state)
            :when  (clojure.core/not (empty? stream))
-           :let   [f (first stream)]
+           :let   [f (clojure.core/first stream)]
            :when  (clojure.core/or (string? f) (isa? (class f) clojure.lang.Seqable))
            _      (set-state (if (string? f)
                                f
-                               (seq (first stream))))
+                               (seq (clojure.core/first stream))))
            result rule
            _      (assert-state empty?)
            _      (set-state (rest stream))]
