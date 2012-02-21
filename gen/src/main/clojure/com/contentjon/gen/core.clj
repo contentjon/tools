@@ -163,7 +163,7 @@
                      (? next)))))]
        (next-parser 0))))
 
-(defn- ignore
+(defn ignore
   [[first & rest]]
   (if first
     (parser [_ first

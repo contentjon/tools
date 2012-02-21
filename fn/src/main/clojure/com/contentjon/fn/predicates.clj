@@ -101,3 +101,9 @@
   [& props]
   (let [spec (partition 2 props)]
     (apply and? (map (partial apply property?) spec))))
+
+(defn identity-when
+  "Takes a predicate and an element x. Returns the identity of x
+   when (pred x) evaluates to logically true"
+  [pred]
+  (and? pred identity))

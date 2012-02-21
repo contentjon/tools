@@ -30,6 +30,7 @@
 (def words       (joiner " "))
 (def lines       (joiner "\n"))
 (def paragraphs  (joiner "\n\n"))
+(def points      (joiner "."))
 (def commas      (joiner ","))
 (def colons      (joiner ":"))
 (def semicolons  (joiner ";"))
@@ -38,5 +39,13 @@
 (def words*      (caller words))
 (def lines*      (caller lines))
 (def paragraphs* (caller paragraphs))
+(def points*     (caller points))
 (def commas*     (caller commas))
 (def semicolons* (caller semicolons))
+
+(defn block [cmds]
+  (-> cmds
+      lines*
+      (prepend *endl*)
+      indent
+      (append *endl*)))
