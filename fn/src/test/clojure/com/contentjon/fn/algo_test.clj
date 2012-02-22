@@ -20,7 +20,7 @@
          ((mapper inc) [1 2 3])       => [2 3 4]
          ((mapper +) [1 2 3] [3 2 1]) => [4 4 4]
          ((mapper nil) [])            => []
-         ((mapper 1) [...xs...])      => (throws RuntimeException)))
+         ((mapper 1) [...xs...])      => (throws ClassCastException)))
 
 (deftest test-reducer
   (facts ((reducer +) [1 2])                   => 3
@@ -29,7 +29,7 @@
          ((reducer (constantly ...any...)) []) => ...any... ; reduce special case
          ((reducer ...fn... ...any...) [])     => ...any...
          ((reducer +) 4)                       => (throws IllegalArgumentException)
-         ((reducer + 3) 4 [])                  => (throws IllegalArgumentException)
+         ((reducer + 3) 4 [])                  => (throws clojure.lang.ArityException)
          ((reducer 1) [])                      => (throws ClassCastException)
-         ((reducer 1) ...any...)               => (throws IllegalArgumentException)
+         ((reducer 1) ...any...)               => (throws ClassCastException)
          ((reducer nil ...any...) [...xs...])  => (throws NullPointerException)))
