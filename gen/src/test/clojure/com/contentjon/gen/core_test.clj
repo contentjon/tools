@@ -171,3 +171,17 @@
     (parse (last (of integer?) (of string?)) [1 "foobar"]) => "foobar"
     (parse (last (of integer?) (of string?)) [1 2]) => nil
     (parse (last (of integer?) (of string?)) ["foobar" 1]) => nil))
+
+(defmulti-parser test-multi (or "a" "b"))
+
+(defparser-method test-multi "a"
+  [_ "a"] :a)
+
+(defparser-method test-multi "b"
+  [_ "b"] :b)
+
+(deftest multi-test
+  (facts
+    (parse test-multi "a") => :a
+    (parse test-multi "b") => :b
+    (parse test-multi "c") => nil))

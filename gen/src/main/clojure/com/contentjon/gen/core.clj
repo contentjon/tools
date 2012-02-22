@@ -2,7 +2,7 @@
   "Contains general parser functions and the definition of the parser
    monad, which are used in more specialized parsers."
   (:refer-clojure :exclude [+ * first last not or])
-  (:use [clojure.contrib.monads]
+  (:use [clojure.algo.monads]
         [com.contentjon.fn.algo :only (applier)]))
 
 (defprotocol AsParser
@@ -299,10 +299,8 @@
 (defmacro defparser-method
   "Defines a parser for a given dispatch value as returned by the dispatch parser
    of a multiparser"
-  [n dispatch-v p]
-  `(defmethod ~n ~dispatch-v
-     [in#]
-     (~p in#)))
+  [n dispatch-v bindings body]
+  `(.addMethod ~n ~dispatch-v (parser ~bindings ~body)))
 
 (extend-protocol AsParser
   java.lang.Character
