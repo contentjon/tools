@@ -55,7 +55,7 @@
     (parse (or) [1]) => parser-fail?
 
     ; parser generation time failures
-    (or nil) => (throws RuntimeException))) ; wrapped IllegalArgumentException
+    (or nil) => (throws RuntimeException)))
 
 (deftest ?-test
   (facts
@@ -68,7 +68,7 @@
     (parse-partial (? (of integer?)) ["abc"]) => [nil ["abc"]]
 
     ; parser generation time failures
-    (? nil) => (throws RuntimeException))) ; wrapped IllegalArgumentException
+    (? nil) => (throws RuntimeException)))
 
 (deftest *-test
   (facts
