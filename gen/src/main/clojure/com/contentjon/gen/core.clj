@@ -2,7 +2,7 @@
   "Contains general parser functions and the definition of the parser
    monad, which are used in more specialized parsers."
   (:refer-clojure :exclude [+ * first last not or])
-  (:use [clojure.algo.monads]
+  (:use [clojure.contrib.monads]
         [com.contentjon.fn.algo :only (applier)]))
 
 (defprotocol AsParser
