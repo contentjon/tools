@@ -13,6 +13,7 @@
     <module>collections</module>
     <module>gen</module>
     <module>fn</module>
+    <module>vars</module>
   </modules>
 
   <dependencies>
