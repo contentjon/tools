@@ -1,6 +1,6 @@
 (ns com.contentjon.tools.vars.wrap)
 
-(defmacro wrap [external-sym]
+(defmacro wrap-one [external-sym]
   (let [ns  (-> external-sym resolve meta :ns .getName symbol)
         sym (-> external-sym name symbol)
         ext-sym (symbol (str ns "/" sym))]
@@ -17,6 +17,6 @@
              @v#))
          (.alterMeta (var ~sym) merge (list meta#))))))
 
-(defmacro wrap-all [& external-syms]
+(defmacro wrap [& external-syms]
   `(do ~@(for [sym external-syms]
-           `(wrap ~sym))))
+           `(wrap-one ~sym))))
