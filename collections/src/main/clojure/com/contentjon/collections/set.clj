@@ -13,9 +13,11 @@
   "Like clojure's conj, but always returns a set"
   (comp as-set clj/conj))
 
-(def disj
+(defn disj
   "Like clojure's disj, but always returns a set"
-  (comp clj/disj as-set))
+  [coll x]
+  (clj/disj (as-set coll)
+            x))
 
 (def map
   "Like clojure's map, but always returns a set"
