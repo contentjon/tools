@@ -7,12 +7,12 @@
 
   <parent>
       <groupId>com.contentjon.tools</groupId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
       <artifactId>tools</artifactId>
   </parent>
 
   <groupId>com.contentjon.tools</groupId>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1</version>
   <artifactId>collections</artifactId>
   <packaging>jar</packaging>
 
