@@ -25,6 +25,7 @@
 (def parens   (embracer "(" ")"))
 (def braces   (embracer "{" "}"))
 (def brackets (embracer "[" "]"))
+(def angles   (embracer "<" ">"))
 (def quotes   (embracer "\""))
 
 (def words       (joiner " "))
@@ -35,6 +36,7 @@
 (def colons      (joiner ":"))
 (def semicolons  (joiner ";"))
 (def underscores (joiner "_"))
+(def slashes     (joiner "/"))
 
 (def words*      (caller words))
 (def lines*      (caller lines))
@@ -42,6 +44,7 @@
 (def points*     (caller points))
 (def commas*     (caller commas))
 (def semicolons* (caller semicolons))
+(def slashes*    (caller slashes))
 
 (defn block [cmds]
   (-> cmds
