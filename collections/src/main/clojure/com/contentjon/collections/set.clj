@@ -16,8 +16,7 @@
 (defn disj
   "Like clojure's disj, but always returns a set"
   [coll x]
-  (clj/disj (as-set coll)
-            x))
+  (clj/disj (as-set coll) x))
 
 (def map
   "Like clojure's map, but always returns a set"
