@@ -11,11 +11,9 @@
          (subs filename 1))
     filename))
 
-(defn- to-writer [x]
+(defn- expanded [x]
   (if (string? x)
-    (-> x
-        (expand-home)
-        (io/writer))
+    (expand-home x)
     x))
 
 (defn debug-to
@@ -24,7 +22,7 @@
    - a filename (a leading ~ is replaced by user.home)
    - any java.io.Writer, e.g. *out*"
   [x]
-  (->> (to-writer x)
+  (->> (expanded x)
        (constantly)
        (alter-var-root #'*debug-out*)))
 
@@ -33,34 +31,49 @@
   []
   (debug-to nil))
 
+(defn debugging-to [f x]
+  (fn [& args]
+    (binding [*debug-out* (expanded x)]
+      (apply f args))))
+
 (defmacro with-debug-to
   "Dynamically binds *debug-out* and executes body.
    See debug-to for more information."
   [x & body]
-  `(binding [*debug-out* (to-writer ~x)]
-     ~@body))
-
-(defmacro without-debug
-  "Binds *debug-out* to nil and executes body."
-  [& body]
-  `(with-debug-to nil
-     ~@body))
+  `(let [f# (debugging-to (fn []
+                            ~@body)
+                          ~x)]
+     (f#)))
 
 (defn log
   "Logs args to *debug-out*, formatted using println-str"
   [& args]
-  (when *debug-out*
-    (->> args
-         (apply println-str)
-         (.write *debug-out*))
-    (.flush *debug-out*)))
+  (let [msg (binding [*print-length* 20
+                      *print-level* 4]
+              (apply println-str args))]
+    (when *debug-out*
+      (if (string? *debug-out*)
+        (spit *debug-out* msg :append true)
+        (doto *debug-out*
+          (.write msg)
+          (.flush)))
+      nil)))
 
-(defmacro log-call
+(defn logging
+  "Returns a function that behaves like f, but logs the arguments
+   and the return value. The second argument is a function name
+   to be printed along."
+  [f fname]
+  (fn [& args]
+    (log "Calling" fname "with args:" args)
+    (let [ret (apply f args)]
+       (log fname "returned" ret)
+       ret)))
+
+(defmacro with-logging
   "Logs a function call, printing both the arguments and the result,
-   then returns the result. Example: (log-call + 1 2 3)"
+   then returns the result. Example: (with-logging + 1 2 3)"
   [f & args]
-  `(let [args# [~@args]]
-     (log "Calling" ~(str f) "with args:" (str/join " " args#))
-     (let [ret# (apply ~f args#)]
-       (log ~(str f) "returned" ret#)
-       ret#)))
+  `(let [fname# '~f
+         f#     (logging ~f fname#)]
+     (f# ~@args)))
