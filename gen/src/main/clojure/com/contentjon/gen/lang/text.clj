@@ -6,6 +6,8 @@
 (def ^:dynamic *endl*   "\n")
 (def ^:dynamic *indent* "  ")
 
+(def render  (partial apply str))
+
 (def indent
   #(.replace % *endl* (str *endl* *indent*)))
 
@@ -22,9 +24,22 @@
 (def prepend #(str %2 %1))
 (def append  str)
 
+(defn prepender [s]
+  #(prepend % s))
+
+(defn appender [s]
+  #(append % s))
+
+(def endl    (appender "\n"))
+(def ownline (embracer "\n"))
+
+(defn nendl [txt n]
+  (first (drop n (iterate endl txt))))
+
 (def parens   (embracer "(" ")"))
 (def braces   (embracer "{" "}"))
 (def brackets (embracer "[" "]"))
+(def angles   (embracer "<" ">"))
 (def quotes   (embracer "\""))
 
 (def words       (joiner " "))
@@ -35,6 +50,8 @@
 (def colons      (joiner ":"))
 (def semicolons  (joiner ";"))
 (def underscores (joiner "_"))
+(def slashes     (joiner "/"))
+(def ands        (joiner "&"))
 
 (def words*      (caller words))
 (def lines*      (caller lines))
@@ -42,6 +59,7 @@
 (def points*     (caller points))
 (def commas*     (caller commas))
 (def semicolons* (caller semicolons))
+(def slashes*    (caller slashes))
 
 (defn block [cmds]
   (-> cmds
