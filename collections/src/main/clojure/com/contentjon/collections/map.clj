@@ -24,11 +24,20 @@
                   m))
            m m))
 
-(defn update-all
-  "Update all values in a map m with update-fn"
+(defn update-keys
+  "Updates all keys in a map m with update-fn"
+  [m update-fn]
+  (zipmap (map update-fn (keys m))
+          (vals m)))
+
+(defn update-vals
+  "Updates all values in a map m with update-fn"
   [m update-fn]
   (zipmap (keys m)
           (map update-fn (vals m))))
+
+;; Deprecated
+(def update-all update-vals)
 
 (defn select-when
   "Takes a map and returns a new map which contains only keys for which
